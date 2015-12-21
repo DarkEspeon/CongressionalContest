@@ -25,16 +25,11 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import net.awesome.game.entities.Player;
-import net.awesome.game.entities.PlayerMP;
 import net.awesome.game.entities.mobs.BasicMob;
 import net.awesome.game.gfx.Screen;
 import net.awesome.game.gfx.SpriteSheet;
 import net.awesome.game.gui.ImageButton;
 import net.awesome.game.level.Level;
-import net.awesome.game.net.GameClient;
-import net.awesome.game.net.GameServer;
-import net.awesome.game.net.packets.Packet00Login;
-import net.awesome.game.net.packets.Packet03ChangeColor;
 
 public class Game extends Canvas implements Runnable {
 
@@ -73,12 +68,10 @@ public class Game extends Canvas implements Runnable {
 	public WindowHandler window;
 	public Level level;
 	public Player player;
-	public Player fakePlayer = new Player(null, 0, 0, null, "Faker", null);
+	public Player fakePlayer = new Player(null, 0, 0, null, "Faker");
 	
 	public static HashMap<String, BasicMob> mobTemplates = new HashMap<>();
 	
-	public GameClient client;
-	public GameServer server = null;
 	public boolean escButtonReleased = true;
 	public GameState gs;
 	
@@ -284,9 +277,6 @@ public class Game extends Canvas implements Runnable {
 		player.setShirtColor(fakePlayer.getShirtColor());
 		player.setSkinColor(fakePlayer.getSkinColor());
 		player.setPantsColor(fakePlayer.getPantsColor());
-		
-		Packet03ChangeColor packet = new Packet03ChangeColor(player, new Color[]{player.getEyeColor(), player.getHairColor(), player.getShirtColor(), player.getSkinColor(), player.getPantsColor()});
-		packet.writeData(client);
 	}
 	protected void HandleColorSliders() {
 		int red = r.getValue();
@@ -319,30 +309,13 @@ public class Game extends Canvas implements Runnable {
 		input = new InputHandler(this);
 		window = new WindowHandler(this);
 		level = new Level("/level/WaterTest.png");
-		player = new PlayerMP(level, 100, 100, input, JOptionPane.showInputDialog("Please input a username"), null, -1);
+		player = new Player(level, 100, 100, input, JOptionPane.showInputDialog("Please input a username"));
 		level.addPlayer(player);
-		//client.sendData("ping".getBytes());
-		Packet00Login loginPacket = new Packet00Login(player.getUsername(), player.x, player.y, new Color[]{player.getEyeColor(), player.getHairColor(), player.getShirtColor(), player.getSkinColor(), player.getPantsColor()});
-		if(server != null){
-			server.addConnection((PlayerMP)player, loginPacket);
-		}
-		loginPacket.writeData(client);
 	}
 	public synchronized void start() {
 		running = true;
 		gs = GameState.Playing;
 		requestFocus();
-		if(JOptionPane.showConfirmDialog(this, "Do you want to run the server?") == 0){
-			server = new GameServer(this);
-			server.start();
-		} else {
-			String ip = JOptionPane.showInputDialog("What is the IP of the server?");
-			client = new GameClient(this, ip);
-		}
-		if (client == null){
-			client = new GameClient(this, "localhost");
-		}
-		client.start();
 		init();
 		new Thread(this, "Game").start();
 	}

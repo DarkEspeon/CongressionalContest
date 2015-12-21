@@ -11,28 +11,15 @@ import javax.imageio.ImageIO;
 import net.awesome.game.Game;
 import net.awesome.game.entities.Entity;
 import net.awesome.game.entities.Player;
-import net.awesome.game.entities.PlayerMP;
 import net.awesome.game.gfx.Screen;
 import net.awesome.game.level.tiles.Tile;
 
 public class Level {
-	private class DelayedPlayer{
-		private Player player;
-		private boolean add;
-		public DelayedPlayer(Player player, boolean add){
-			this.player = player;
-			this.add = add;
-		}
-		public Player getPlayer(){ return player; }
-		public boolean isAdd(){ return add; }
-	}
 	private byte[] tiles;
 	public int width;
 	public int height;
 	private List<Entity> entities = new ArrayList<>();
 	private List<Player> players = new ArrayList<>();
-	private List<DelayedPlayer> delayPlayer = new ArrayList<>();
-	private boolean delayPlayers = false;
 	private String imagePath;
 	private BufferedImage image;
 	
@@ -112,19 +99,6 @@ public class Level {
 		for(Player p : getPlayers()){
 			p.tick();
 		}
-		delayPlayers = true;
-		for(DelayedPlayer p : delayPlayer){
-			if(p.isAdd()){
-				getPlayers().add(p.getPlayer());
-			} else {
-				getPlayers().remove(p.getPlayer());
-			}
-		}
-		delayPlayers = false;
-		synchronized(delayPlayer) {
-			delayPlayer.clear();
-			delayPlayer.notifyAll();
-		}
 		for(Tile t : Tile.tiles){
 			if(t == null) break;
 			else t.tick();
@@ -165,48 +139,6 @@ public class Level {
 		this.getEntities().add(e);
 	}
 	public void addPlayer(Player p){
-		if(delayPlayers)
-			try {
-				delayPlayer.wait();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		delayPlayer.add(new DelayedPlayer(p, true));
-	}
-
-	public synchronized void removePlayerMP(String username) {
-		if(delayPlayers){
-			try {
-				delayPlayer.wait();
-			} catch (InterruptedException e){
-				e.printStackTrace();
-			}
-		}
-		Player p = players.get(getPlayerIndex(username));
-		delayPlayer.add(new DelayedPlayer(p, false));
-	}
-	
-	public int getPlayerIndex(String username) {
-		int index = 0;
-		playerCheck: for(Player p : getPlayers()){
-			if(p != null){
-				if(p instanceof PlayerMP && ((PlayerMP)p).getUsername().equalsIgnoreCase(username)){
-					break playerCheck;
-				}
-			}
-			index++;
-		}
-		return index;
-	}
-	
-	public void movePlayer(String username, int x, int y, int numSteps, boolean isMoving, int movingDir){
-		int index = getPlayerIndex(username);
-		if(index >= getPlayers().size()) return;
-		PlayerMP player = (PlayerMP) getPlayers().get(index);
-		player.x = x;
-		player.y = y;
-		player.setNumSteps(numSteps);
-		player.setMoving(isMoving);
-		player.setMovingDir(movingDir);
+		this.getPlayers().add(p);
 	}
 }

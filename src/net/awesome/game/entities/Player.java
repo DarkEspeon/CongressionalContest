@@ -3,7 +3,6 @@ package net.awesome.game.entities;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -16,7 +15,6 @@ import net.awesome.game.classes.Class;
 import net.awesome.game.gfx.Font;
 import net.awesome.game.gfx.Screen;
 import net.awesome.game.level.Level;
-import net.awesome.game.net.packets.Packet02Move;
 
 public class Player extends Mob {
 	
@@ -27,7 +25,7 @@ public class Player extends Mob {
 	private String username;
 	private Dictionary<String, Color> charColors = new Hashtable<String, Color>();
 	
-	public Player(Level level, int x, int y, InputHandler input, String username, Class clss) {
+	public Player(Level level, int x, int y, InputHandler input, String username) {
 		super(level, "player", x, y, 1);
 		this.input = input;
 		this.username = username;
@@ -51,9 +49,6 @@ public class Player extends Mob {
 		if(xa != 0 || ya != 0){
 			move(xa, ya);
 			isMoving = true;
-			
-			Packet02Move packet = new Packet02Move(username, this.x, this.y, this.numSteps, this.isMoving, this.movingDir);
-			packet.writeData(Game.game.client);
 			
 		}
 		else {

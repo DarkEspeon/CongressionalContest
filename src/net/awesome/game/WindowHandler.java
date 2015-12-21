@@ -3,8 +3,6 @@ package net.awesome.game;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
-import net.awesome.game.net.packets.Packet01Disconnect;
-
 public class WindowHandler implements WindowListener{
 
 	private final Game game;
@@ -23,9 +21,7 @@ public class WindowHandler implements WindowListener{
 	}
 
 	@Override
-	public void windowClosing(WindowEvent arg0) { 
-		 Packet01Disconnect packet = new Packet01Disconnect(this.game.player.getUsername());
-		 packet.writeData(this.game.client);
+	public void windowClosing(WindowEvent arg0) {
 	}
 
 	@Override

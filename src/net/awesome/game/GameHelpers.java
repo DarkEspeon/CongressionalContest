@@ -16,7 +16,6 @@ public class GameHelpers {
 	public static BasicMob a = new BasicMob(Game.game.level, "", 0, 0, 1, null);
 	
 	public static void SpawnMobs(){
-		if(Game.game.server != null){
 			MobCoolDownTimer++;
 			if(MobCoolDownTimer >= mobCoolDown){
 				List<Vector2d> validSpawnTiles = new ArrayList<>();
@@ -35,9 +34,6 @@ public class GameHelpers {
 					}
 				}
 				MobCoolDownTimer = 0;
-			}
-		} else {
-			return;
 		}
 	}
 }
