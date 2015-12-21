@@ -120,10 +120,8 @@ public class GameServer extends Thread{
 				alreadyConnected = true;
 			} else {
 				sendData(packet.readData(), p.ipAddress, p.port);
-				Packet00Login packetNew = new Packet00Login(p.getUsername(), p.x, p.y);
+				Packet00Login packetNew = new Packet00Login(p.getUsername(), p.x, p.y, new Color[]{p.getEyeColor(), p.getHairColor(), p.getShirtColor(), p.getSkinColor(), p.getPantsColor()});
 				sendData(packetNew.readData(), player.ipAddress, player.port);
-				Packet03ChangeColor ccpacket = new Packet03ChangeColor(p, new Color[]{p.getEyeColor(), p.getHairColor(), p.getShirtColor(), p.getSkinColor(), p.getPantsColor()});
-				sendData(ccpacket.readData(), player.ipAddress, player.port);
 			}
 		}
 		if(!alreadyConnected){

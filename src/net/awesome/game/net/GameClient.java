@@ -92,6 +92,14 @@ public class GameClient extends Thread{
 	private void handleLogin(Packet00Login packet, InetAddress address, int port) {
 		System.out.println("[" + address.getHostAddress() + ":" + port + "]" + packet.getUsername() + "has joined the game");
 		PlayerMP player = new PlayerMP(game.level, packet.getX(), packet.getY(), packet.getUsername(), address, port);
+		Color[] c = packet.getColorArray();
+		
+		player.setEyeColor(c[0]);
+		player.setHairColor(c[1]);
+		player.setShirtColor(c[2]);
+		player.setSkinColor(c[3]);
+		player.setPantsColor(c[4]);
+
 		game.level.addPlayer(player);
 	}
 

@@ -322,7 +322,7 @@ public class Game extends Canvas implements Runnable {
 		player = new PlayerMP(level, 100, 100, input, JOptionPane.showInputDialog("Please input a username"), null, -1);
 		level.addPlayer(player);
 		//client.sendData("ping".getBytes());
-		Packet00Login loginPacket = new Packet00Login(player.getUsername(), player.x, player.y);
+		Packet00Login loginPacket = new Packet00Login(player.getUsername(), player.x, player.y, new Color[]{player.getEyeColor(), player.getHairColor(), player.getShirtColor(), player.getSkinColor(), player.getPantsColor()});
 		if(server != null){
 			server.addConnection((PlayerMP)player, loginPacket);
 		}
