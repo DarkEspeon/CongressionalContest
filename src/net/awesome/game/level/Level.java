@@ -201,6 +201,7 @@ public class Level {
 	
 	public void movePlayer(String username, int x, int y, int numSteps, boolean isMoving, int movingDir){
 		int index = getPlayerIndex(username);
+		if(index >= getPlayers().size()) return;
 		PlayerMP player = (PlayerMP) getPlayers().get(index);
 		player.x = x;
 		player.y = y;
