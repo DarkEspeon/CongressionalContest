@@ -16,11 +16,23 @@ import net.awesome.game.gfx.Screen;
 import net.awesome.game.level.tiles.Tile;
 
 public class Level {
+	private class DelayedPlayer{
+		private Player player;
+		private boolean add;
+		public DelayedPlayer(Player player, boolean add){
+			this.player = player;
+			this.add = add;
+		}
+		public Player getPlayer(){ return player; }
+		public boolean isAdd(){ return add; }
+	}
 	private byte[] tiles;
 	public int width;
 	public int height;
 	private List<Entity> entities = new ArrayList<>();
 	private List<Player> players = new ArrayList<>();
+	private List<DelayedPlayer> delayPlayer = new ArrayList<>();
+	private boolean delayPlayers = false;
 	private String imagePath;
 	private BufferedImage image;
 	
@@ -100,6 +112,19 @@ public class Level {
 		for(Player p : getPlayers()){
 			p.tick();
 		}
+		delayPlayers = true;
+		for(DelayedPlayer p : delayPlayer){
+			if(p.isAdd()){
+				getPlayers().add(p.getPlayer());
+			} else {
+				getPlayers().remove(p.getPlayer());
+			}
+		}
+		delayPlayers = false;
+		synchronized(delayPlayer) {
+			delayPlayer.clear();
+			delayPlayer.notifyAll();
+		}
 		for(Tile t : Tile.tiles){
 			if(t == null) break;
 			else t.tick();
@@ -140,11 +165,25 @@ public class Level {
 		this.getEntities().add(e);
 	}
 	public void addPlayer(Player p){
-		this.getPlayers().add(p);
+		if(delayPlayers)
+			try {
+				delayPlayer.wait();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		delayPlayer.add(new DelayedPlayer(p, true));
 	}
 
 	public synchronized void removePlayerMP(String username) {
-		getPlayers().remove(getPlayerIndex(username));
+		if(delayPlayers){
+			try {
+				delayPlayer.wait();
+			} catch (InterruptedException e){
+				e.printStackTrace();
+			}
+		}
+		Player p = players.get(getPlayerIndex(username));
+		delayPlayer.add(new DelayedPlayer(p, false));
 	}
 	
 	public int getPlayerIndex(String username) {

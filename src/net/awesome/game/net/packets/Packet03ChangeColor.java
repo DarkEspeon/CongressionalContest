@@ -22,6 +22,10 @@ public class Packet03ChangeColor extends Packet {
 				p = (PlayerMP)e;
 			}
 		}
+		if(p == null){
+			System.out.println("WTF player " + dataArray[0] +" not found");
+			return;
+		}
 		colors[0] = (dataArray[1] != "") ? new Color(Integer.parseInt(dataArray[1])) : new Color(0,0,0);
 		colors[1] = (dataArray[2] != "") ? new Color(Integer.parseInt(dataArray[2])) : new Color(0,0,0);
 		colors[2] = (dataArray[3] != "") ? new Color(Integer.parseInt(dataArray[3])) : new Color(0,0,0);
