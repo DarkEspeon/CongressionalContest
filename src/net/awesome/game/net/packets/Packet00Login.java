@@ -18,11 +18,11 @@ public class Packet00Login extends Packet {
 		this.x = Integer.parseInt(dataArray[1]);
 		this.y = Integer.parseInt(dataArray[2]);
 
-		colors[0] = (dataArray[1] != "") ? new Color(Integer.parseInt(dataArray[1])) : new Color(0,0,0);
-		colors[1] = (dataArray[2] != "") ? new Color(Integer.parseInt(dataArray[2])) : new Color(0,0,0);
-		colors[2] = (dataArray[3] != "") ? new Color(Integer.parseInt(dataArray[3])) : new Color(0,0,0);
-		colors[3] = (dataArray[4] != "") ? new Color(Integer.parseInt(dataArray[4])) : new Color(0,0,0);
-		colors[4] = (dataArray[5] != "") ? new Color(Integer.parseInt(dataArray[5])) : new Color(0,0,0);
+		colors[0] = (dataArray[3] != "") ? new Color(Integer.parseInt(dataArray[3])) : new Color(0,0,0);
+		colors[1] = (dataArray[4] != "") ? new Color(Integer.parseInt(dataArray[4])) : new Color(0,0,0);
+		colors[2] = (dataArray[5] != "") ? new Color(Integer.parseInt(dataArray[5])) : new Color(0,0,0);
+		colors[3] = (dataArray[6] != "") ? new Color(Integer.parseInt(dataArray[6])) : new Color(0,0,0);
+		colors[4] = (dataArray[7] != "") ? new Color(Integer.parseInt(dataArray[7])) : new Color(0,0,0);
 	}
 	
 	public Packet00Login(String username, int x, int y, Color[] c) {
