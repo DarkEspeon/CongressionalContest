@@ -1,0 +1,109 @@
+package net.awesome.game.entities.system;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import net.awesome.game.collections.ArrayMap;
+import net.awesome.game.collections.IMap;
+import net.awesome.game.entities.Entity;
+import net.awesome.game.entities.EntitySystem;
+import net.awesome.game.entities.components.Component;
+
+public abstract class ComponentSystem {
+	public static boolean timeSystems = false;
+	private List<Class<? extends Component>> requiredComponents = new ArrayList<>();
+	private List<Class<? extends Component>> optionalComponents = new ArrayList<>();
+	private List<Class<? extends Component>> bannedComponents = new ArrayList<>();
+	protected Map<Class<? extends Component>, Class<? extends Component>> exclusiveComponents = new HashMap<>();
+	protected IMap<Class<? extends Component>, Component> requiredComponentRef = new ArrayMap<>();
+	protected IMap<Class<? extends Component>, Component> optionalComponentRef = new ArrayMap<>();
+	private EntitySystem es;
+	private Iterator<Entity> EntityIter = null;
+	public ComponentSystem(EntitySystem es){
+		this.es = es;
+	}
+	protected Iterator<Entity> iterator() {
+		return new EntityIterator(es);
+	}
+	public void addRequired(Class<? extends Component> clss){ requiredComponents.add(clss); requiredComponentRef.add(clss, null); }
+	public void addOptional(Class<? extends Component> clss){ optionalComponents.add(clss); optionalComponentRef.add(clss, null); }
+	public void addBanned(Class<? extends Component> clss){ bannedComponents.add(clss); }
+	public void addExclusive(Class<? extends Component> clss1, Class<? extends Component> clss2){
+		exclusiveComponents.put(clss1, clss2);
+	}
+	
+	public <T extends Component> T getRequired(Class<T> clss){ return (T)requiredComponentRef.get(clss); }
+	public <T extends Component> T getOptional(Class<T> clss){ return (T)optionalComponentRef.get(clss); }
+	
+	private boolean NextEntity(){
+		if(EntityIter == null) EntityIter = iterator();
+		Entity e = EntityIter.next();
+		if (!EntityIter.hasNext() && e == null){ EntityIter = null; return false; }
+		for(Class<? extends Component> reqC : requiredComponents){
+			requiredComponentRef.add(reqC, e.getComponent(reqC));
+		}
+		for(Class<? extends Component> excC : exclusiveComponents.keySet()){
+			if(e.hasComponent(excC)){
+				optionalComponentRef.add(excC, e.getComponent(excC));
+				optionalComponentRef.add(exclusiveComponents.get(excC), null);
+			} else if(e.hasComponent(exclusiveComponents.get(excC))){
+				optionalComponentRef.add(excC, null);
+				optionalComponentRef.add(exclusiveComponents.get(excC), e.getComponent(exclusiveComponents.get(excC)));
+			} else {
+				optionalComponentRef.add(excC, null);
+				optionalComponentRef.add(exclusiveComponents.get(excC), null);
+			}
+		}
+		for(Class<? extends Component> optC : optionalComponents){
+			if(e.hasComponent(optC)) optionalComponentRef.add(optC, e.getComponent(optC));
+			else optionalComponentRef.add(optC, null);
+		}
+		return true;
+	}
+	
+	public void process(){
+		if(requiredComponents.size() == 0) throw new RuntimeException("System " + getClass().getSimpleName() + " class was called to process, but doesn't have any required components!");
+		else {
+			long time = 0;
+			if(timeSystems)
+				time = System.currentTimeMillis();
+			while(NextEntity()){
+				onProcess();
+			}
+			if(timeSystems){
+				System.out.println(getClass().getSimpleName() + ": Took " + (System.currentTimeMillis() - time) + " ms");
+			}
+		}
+	}
+	public abstract void onProcess();
+	
+	protected class EntityIterator implements Iterator<Entity>{
+		private List<Entity> matches = new ArrayList<Entity>();
+		private int index = 0;
+		public EntityIterator(EntitySystem es){
+			EntityLoop: for(Entity e : es.getEntities().values()){
+				for(Class<? extends Component> banC : bannedComponents){
+					if(e.hasComponent(banC)) continue EntityLoop;
+				}
+				for(Class<? extends Component> exC1 : exclusiveComponents.keySet()){
+					if(e.hasComponent(exC1) && e.hasComponent(exclusiveComponents.get(exC1))) continue EntityLoop;
+				}
+				for(Class<? extends Component> clss : requiredComponents) {
+					if(e.hasComponent(clss)) continue;
+					else continue EntityLoop;
+				}
+				matches.add(e);
+			}
+		}
+		public boolean hasNext() {
+			return matches != null && index < matches.size();
+		}
+		public Entity next() {
+			return (index < matches.size()) ? matches.get(index++) : null;
+		}
+		
+	}
+}
