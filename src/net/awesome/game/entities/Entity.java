@@ -1,17 +1,16 @@
 package net.awesome.game.entities;
 
-import net.awesome.game.gfx.Screen;
-import net.awesome.game.level.Level;
+import java.util.HashMap;
+import java.util.Map;
 
-public abstract class Entity {
-	public int x, y;
-	protected Level level;
-	public Entity(Level level){
-		init(level);
-	}
-	public final void init(Level level){
-		this.level = level;
-	}
-	public abstract void tick();
-	public abstract void render(Screen screen);
+import net.awesome.game.entities.components.Component;
+
+public class Entity {
+	private Map<Class<? extends Component>, Component> components = new HashMap<>();
+	public Entity(){}
+	
+	public boolean hasComponent(Class<? extends Component> comp) { return components.containsKey(comp); }
+	public <T extends Component> T getComponent(Class<T> clzz){ return (T)components.get(clzz); }
+	public void addComponent(Component comp){ components.put(comp.getClass(), comp); }
+	public void removeComponent(Class<? extends Component> comp){ components.remove(comp); }
 }

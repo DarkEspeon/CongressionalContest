@@ -3,7 +3,7 @@ package net.awesome.game.entities;
 import net.awesome.game.level.Level;
 import net.awesome.game.level.tiles.Tile;
 
-public abstract class Mob extends Entity {
+public abstract class Mob extends OldEntity {
 	
 	protected String name;
 	protected int speed;

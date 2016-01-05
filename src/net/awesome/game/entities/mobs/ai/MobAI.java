@@ -2,13 +2,13 @@ package net.awesome.game.entities.mobs.ai;
 
 import java.util.Random;
 
-import net.awesome.game.entities.Entity;
+import net.awesome.game.entities.OldEntity;
 
 public abstract class MobAI {
-	protected Entity controlled;
+	protected OldEntity controlled;
 	protected static Random r = new Random();
 	protected int x, y;
-	public void setControlled(Entity c){
+	public void setControlled(OldEntity c){
 		controlled = c;
 	}
 	public abstract void runAI();
