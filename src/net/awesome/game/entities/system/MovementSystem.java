@@ -1,5 +1,7 @@
 package net.awesome.game.entities.system;
 
+import net.awesome.game.Game;
+import net.awesome.game.Maths;
 import net.awesome.game.entities.EntitySystem;
 import net.awesome.game.entities.components.AIComponent;
 import net.awesome.game.entities.components.CollisionComponent;
@@ -29,7 +31,11 @@ public class MovementSystem extends ComponentSystem {
 		int xa = 0, ya = 0;
 		if(rc != null) rc.tickCount++;
 		if(playc == null && aic != null){
-			// AI
+			if(aic.aiModule != null && Maths.distance(aic.x, aic.y, Game.playerX, Game.playerY) < aic.agroDistance){
+				aic.aiModule.findPath(aic.x, aic.y, Game.playerX, Game.playerY);
+				xa = aic.aiModule.getXA();
+				ya = aic.aiModule.getYA();
+			}
 		} else if(aic == null && playc != null) {
 			if(playc.input != null){
 				if(playc.input.up.isPressed()) ya--;
@@ -54,6 +60,7 @@ public class MovementSystem extends ComponentSystem {
 		MovementComponent mc = getRequired(MovementComponent.class);
 		PositionComponent posc = getRequired(PositionComponent.class);
 		RenderComponent rc = getOptional(RenderComponent.class);
+		AIComponent aic = getOptional(AIComponent.class);
 		if(xa != 0 && ya != 0){
 			move(xa, 0);
 			move(0, ya);
@@ -66,6 +73,10 @@ public class MovementSystem extends ComponentSystem {
 		if(xa < 0) rc.movingDir = 2;
 		if(xa > 0) rc.movingDir = 3;
 		if(!hasCollided(xa, ya)){
+			if(aic != null){
+				aic.x += xa * mc.speed;
+				aic.y += xa * mc.speed;
+			}
 			posc.x += xa * mc.speed;
 			posc.y += ya * mc.speed;
 		}

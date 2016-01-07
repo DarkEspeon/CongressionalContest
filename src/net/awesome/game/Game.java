@@ -46,8 +46,10 @@ public class Game extends Canvas implements Runnable {
 	public static EntitySystem es = new EntitySystem();
 	private static List<ComponentSystem> systems = new ArrayList<>();
 	private static RenderSystem renderSystem;
-	
+	public static int playerX, playerY;
 	public static Game game;
+	
+	public static Level currentLevel;
 	
 	public JFrame frame;
 	public ImageButton pauseMenu1;
@@ -315,7 +317,7 @@ public class Game extends Canvas implements Runnable {
 		input = new InputHandler(this);
 		window = new WindowHandler(this);
 		level = new Level("/level/WaterTest.png");
-		
+		currentLevel = level;
 		systems.add(new MovementSystem(es));
 		renderSystem = new RenderSystem(es);
 		
@@ -419,9 +421,10 @@ public class Game extends Canvas implements Runnable {
 			return;
 		}
 		PositionComponent pc = player.getComponent(PositionComponent.class);
+		playerX = pc.x;
+		playerY = pc.y;
 		int xOffset = pc.x - (screen.width / 2);
 		int yOffset = pc.y - (screen.height / 2);
-		System.out.println(xOffset + " | " + yOffset);
 		level.renderTiles(screen, xOffset, yOffset);
 		renderSystem.process();
 		//level.renderEntities(screen);
