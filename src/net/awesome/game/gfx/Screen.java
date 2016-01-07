@@ -1,6 +1,6 @@
 package net.awesome.game.gfx;
 
-import net.awesome.game.entities.Player;
+import java.util.Map;
 
 public class Screen {
 	public static final int MAP_WIDTH = 64;
@@ -53,7 +53,7 @@ public class Screen {
 			}
 		}
 	}
-	public void render(int xPos, int yPos, int tile, int mirrorDir, int scale, Player p){
+	public void render(int xPos, int yPos, int tile, int mirrorDir, int scale, Map<Integer, Integer> colorSwap){
 		xPos -= xOffset;
 		yPos -= yOffset;
 		boolean mirrorX = (mirrorDir & BIT_MIRROR_X) > 0;
@@ -71,11 +71,7 @@ public class Screen {
 				if(mirrorX) xSheet = 7 - x;
 				int xPixel = x + xPos + (x * scaleMap) - ((scaleMap << 3) / 2);
 				int col = sheet.pixels[xSheet + ySheet * sheet.width + tileOffset];
-				if(col == 0xFF3C3C3C) col = p.getHairColor().getRGB();
-				if(col == 0xFF5A5A5A) col = p.getSkinColor().getRGB();
-				if(col == 0xFF787878) col = p.getEyeColor().getRGB();
-				if(col == 0xFF969696) col = p.getShirtColor().getRGB();
-				if(col == 0xFFB4B4B4) col = p.getPantsColor().getRGB();
+				if(colorSwap.containsKey(col)) col = colorSwap.get(col);
 				for(int yScale = 0; yScale < scale; yScale++){
 					if(yPixel + yScale < 0 || yPixel + yScale >= height) continue;
 					for(int xScale = 0; xScale < scale; xScale++){

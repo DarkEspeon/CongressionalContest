@@ -17,7 +17,6 @@ public abstract class ComponentSystem {
 	private List<Class<? extends Component>> requiredComponents = new ArrayList<>();
 	private List<Class<? extends Component>> optionalComponents = new ArrayList<>();
 	private List<Class<? extends Component>> bannedComponents = new ArrayList<>();
-	protected Map<Class<? extends Component>, Class<? extends Component>> exclusiveComponents = new HashMap<>();
 	protected IMap<Class<? extends Component>, Component> requiredComponentRef = new ArrayMap<>();
 	protected IMap<Class<? extends Component>, Component> optionalComponentRef = new ArrayMap<>();
 	private EntitySystem es;
@@ -31,9 +30,6 @@ public abstract class ComponentSystem {
 	public void addRequired(Class<? extends Component> clss){ requiredComponents.add(clss); requiredComponentRef.add(clss, null); }
 	public void addOptional(Class<? extends Component> clss){ optionalComponents.add(clss); optionalComponentRef.add(clss, null); }
 	public void addBanned(Class<? extends Component> clss){ bannedComponents.add(clss); }
-	public void addExclusive(Class<? extends Component> clss1, Class<? extends Component> clss2){
-		exclusiveComponents.put(clss1, clss2);
-	}
 	
 	public <T extends Component> T getRequired(Class<T> clss){ return (T)requiredComponentRef.get(clss); }
 	public <T extends Component> T getOptional(Class<T> clss){ return (T)optionalComponentRef.get(clss); }
@@ -44,18 +40,6 @@ public abstract class ComponentSystem {
 		if (!EntityIter.hasNext() && e == null){ EntityIter = null; return false; }
 		for(Class<? extends Component> reqC : requiredComponents){
 			requiredComponentRef.add(reqC, e.getComponent(reqC));
-		}
-		for(Class<? extends Component> excC : exclusiveComponents.keySet()){
-			if(e.hasComponent(excC)){
-				optionalComponentRef.add(excC, e.getComponent(excC));
-				optionalComponentRef.add(exclusiveComponents.get(excC), null);
-			} else if(e.hasComponent(exclusiveComponents.get(excC))){
-				optionalComponentRef.add(excC, null);
-				optionalComponentRef.add(exclusiveComponents.get(excC), e.getComponent(exclusiveComponents.get(excC)));
-			} else {
-				optionalComponentRef.add(excC, null);
-				optionalComponentRef.add(exclusiveComponents.get(excC), null);
-			}
 		}
 		for(Class<? extends Component> optC : optionalComponents){
 			if(e.hasComponent(optC)) optionalComponentRef.add(optC, e.getComponent(optC));
@@ -87,9 +71,6 @@ public abstract class ComponentSystem {
 			EntityLoop: for(Entity e : es.getEntities().values()){
 				for(Class<? extends Component> banC : bannedComponents){
 					if(e.hasComponent(banC)) continue EntityLoop;
-				}
-				for(Class<? extends Component> exC1 : exclusiveComponents.keySet()){
-					if(e.hasComponent(exC1) && e.hasComponent(exclusiveComponents.get(exC1))) continue EntityLoop;
 				}
 				for(Class<? extends Component> clss : requiredComponents) {
 					if(e.hasComponent(clss)) continue;

@@ -3,14 +3,9 @@ package net.awesome.game.level;
 import java.awt.image.BufferedImage;
 //import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.imageio.ImageIO;
 
-import net.awesome.game.Game;
-import net.awesome.game.entities.OldEntity;
-import net.awesome.game.entities.Player;
 import net.awesome.game.gfx.Screen;
 import net.awesome.game.level.tiles.Tile;
 
@@ -18,8 +13,8 @@ public class Level {
 	private byte[] tiles;
 	public int width;
 	public int height;
-	private List<OldEntity> entities = new ArrayList<>();
-	private List<Player> players = new ArrayList<>();
+//	private List<OldEntity> entities = new ArrayList<>();
+//	private List<Player> players = new ArrayList<>();
 	private String imagePath;
 	private BufferedImage image;
 	
@@ -85,20 +80,20 @@ public class Level {
 		}
 	}
 	
-	public synchronized List<OldEntity> getEntities(){
-		return this.entities;
-	}
-	public synchronized List<Player> getPlayers(){
-		return this.players;
-	}
+//	public synchronized List<OldEntity> getEntities(){
+//		return this.entities;
+//	}
+//	public synchronized List<Player> getPlayers(){
+//		return this.players;
+//	}
 	
 	public void tick(){
-		for(OldEntity e : getEntities()){
-			e.tick();
-		}
-		for(Player p : getPlayers()){
-			p.tick();
-		}
+//		for(OldEntity e : getEntities()){
+//			e.tick();
+//		}
+//		for(Player p : getPlayers()){
+//			p.tick();
+//		}
 		for(Tile t : Tile.tiles){
 			if(t == null) break;
 			else t.tick();
@@ -120,14 +115,14 @@ public class Level {
 	}
 	
 	public void renderEntities(Screen screen){
-		for(OldEntity e : getEntities()){
-				e.render(screen);
-		}
-		for(Player p : getPlayers()){
-			if(!p.equals(Game.game.player)){
-				p.render(screen);
-			}
-		}
+//		for(OldEntity e : getEntities()){
+//				e.render(screen);
+//		}
+//		for(Player p : getPlayers()){
+//			if(!p.equals(Game.game.player)){
+//				p.render(screen);
+//			}
+//		}
 	}
 
 	public Tile getTile(int x, int y) {
@@ -135,10 +130,10 @@ public class Level {
 		return Tile.tiles[tiles[x + y * width]];
 	}
 
-	public void addEntity(OldEntity e) {
-		this.getEntities().add(e);
-	}
-	public void addPlayer(Player p){
-		this.getPlayers().add(p);
-	}
+//	public void addEntity(OldEntity e) {
+//		this.getEntities().add(e);
+//	}
+//	public void addPlayer(Player p){
+//		this.getPlayers().add(p);
+//	}
 }

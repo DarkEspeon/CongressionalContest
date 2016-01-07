@@ -2,18 +2,22 @@ package net.awesome.game.entities.system;
 
 import net.awesome.game.entities.EntitySystem;
 import net.awesome.game.entities.components.AIComponent;
+import net.awesome.game.entities.components.CollisionComponent;
 import net.awesome.game.entities.components.MovementComponent;
 import net.awesome.game.entities.components.PlayerComponent;
 import net.awesome.game.entities.components.PositionComponent;
 import net.awesome.game.entities.components.RenderComponent;
+import net.awesome.game.level.tiles.Tile;
 
 public class MovementSystem extends ComponentSystem {
 	public MovementSystem(EntitySystem es) {
 		super(es);
 		addRequired(MovementComponent.class);
 		addRequired(PositionComponent.class);
+		addRequired(CollisionComponent.class);
 		addOptional(RenderComponent.class);
-		addExclusive(PlayerComponent.class, AIComponent.class);
+		addOptional(PlayerComponent.class);
+		addOptional(AIComponent.class);
 	}
 
 	public void onProcess() {
@@ -23,6 +27,7 @@ public class MovementSystem extends ComponentSystem {
 		PlayerComponent playc = getOptional(PlayerComponent.class);
 		AIComponent aic = getOptional(AIComponent.class);
 		int xa = 0, ya = 0;
+		if(rc != null) rc.tickCount++;
 		if(playc == null && aic != null){
 			// AI
 		} else if(aic == null && playc != null) {
@@ -32,17 +37,17 @@ public class MovementSystem extends ComponentSystem {
 				if(playc.input.left.isPressed()) xa--;
 				if(playc.input.right.isPressed()) xa++;
 			}
-		}
+		} else return;
 		if(xa != 0 || ya != 0){
 			move(xa, ya);
-			rc.isMoving = true;
+			if(rc != null) rc.isMoving = true;
 		} else {
-			rc.isMoving = false;
+			if(rc != null) rc.isMoving = false;
 		}
-		if(posc.level != null && posc.level.getTile((posc.x >> 3), (posc.y >> 3)).getID() == 3){
-			mc.isSwimming = true;
+		if(posc != null && posc.level != null && posc.level.getTile((posc.x >> 3), (posc.y >> 3)).getID() == 3){
+			if(mc != null) mc.isSwimming = true;
 		} else {
-			mc.isSwimming = false;
+			if(mc != null) mc.isSwimming = false;
 		}
 	}
 	private void move(int xa, int ya){
@@ -60,7 +65,30 @@ public class MovementSystem extends ComponentSystem {
 		if(ya > 0) rc.movingDir = 1;
 		if(xa < 0) rc.movingDir = 2;
 		if(xa > 0) rc.movingDir = 3;
-		posc.x += xa * mc.speed;
-		posc.y += ya * mc.speed;
+		if(!hasCollided(xa, ya)){
+			posc.x += xa * mc.speed;
+			posc.y += ya * mc.speed;
+		}
+	}
+	private boolean hasCollided(int xa, int ya){
+		CollisionComponent cc = getRequired(CollisionComponent.class);
+		if(cc == null) return false;
+		for(int x = cc.xMin; x < cc.xMax; x++){
+			if(isSolidTile(xa, ya, x, cc.yMin)) return true;
+			if(isSolidTile(xa, ya, x, cc.yMax)) return true;
+		}
+		for(int y = cc.yMin; y < cc.yMax; y++){
+			if(isSolidTile(xa, ya, cc.xMin, y)) return true;
+			if(isSolidTile(xa, ya, cc.xMax, y)) return true;
+		}
+		return false;
+	}
+	private boolean isSolidTile(int xa, int ya, int x, int y){
+		PositionComponent posc = getRequired(PositionComponent.class);
+		if(posc == null || posc.level == null) return false;
+		Tile lastTile = posc.level.getTile((posc.x + x) >> 3, (posc.y + y) >> 3);
+		Tile newTile = posc.level.getTile((posc.x + x + xa) >> 3, (posc.y + y + ya) >> 3);
+		if(!lastTile.equals(newTile) && newTile.isSolid()) return true;
+		return false;
 	}
 }
