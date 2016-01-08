@@ -18,8 +18,10 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
+import net.awesome.game.AI.AStarAI;
 import net.awesome.game.entities.Entity;
 import net.awesome.game.entities.EntitySystem;
+import net.awesome.game.entities.components.AIComponent;
 import net.awesome.game.entities.components.CollisionComponent;
 import net.awesome.game.entities.components.ColorComponent;
 import net.awesome.game.entities.components.MovementComponent;
@@ -328,6 +330,15 @@ public class Game extends Canvas implements Runnable {
 		player.addComponent(new RenderComponent(0, 28));
 		player.addComponent(new PositionComponent());
 		player.addComponent(new ColorComponent(0xFF3C3C3C, -3688873, 0xFF5A5A5A, -863813, 0xFF787878, -6325839, 0xFF969696, -16711681, 0xFFB4B4B4, -65536));
+		
+		Entity mob = es.addEntity("Mob1");
+		mob.addComponent(new CollisionComponent(0, 7, 3, 7));
+		mob.addComponent(new MovementComponent(.5f));
+		mob.addComponent(new AIComponent(new AStarAI(), 50));
+		//mob.addComponent(new PlayerComponent(input));
+		mob.addComponent(new RenderComponent(0, 28));
+		mob.addComponent(new PositionComponent(5, 5));
+		mob.addComponent(new ColorComponent(0xFF3C3C3C, -3688873, 0xFF5A5A5A, -863813, 0xFF787878, -6325839, 0xFF969696, -16711681, 0xFFB4B4B4, -65536));
 	}
 	public synchronized void start() {
 		running = true;
@@ -350,17 +361,14 @@ public class Game extends Canvas implements Runnable {
 			long now = System.nanoTime();
 			delta += ((now - lastTime) / nsPerTick);
 			lastTime = now;
-			boolean shouldRender = true;
 			while(delta >= 1){
+				System.out.println("Delta = " + delta);
 				delta--;
 				ticks++;
 				tick();
-				shouldRender = true;
 			}
-			if(shouldRender){
-				frames++;
-				render();
-			}
+			frames++;
+			render();
 			if(System.currentTimeMillis() - lastTimer > 1000){
 				lastTimer+= 1000;
 				frame.setTitle("FPS: " + frames + ", UPS: " + ticks);

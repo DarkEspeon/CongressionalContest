@@ -1,9 +1,10 @@
 package net.awesome.game.entities.components;
 
 public class MovementComponent implements Component {
-	public int speed = 10, numSteps = 0;
+	public float speed = 10;
+	public int numSteps = 0;
 	public boolean isSwimming = false;
-	public MovementComponent(int speed){
+	public MovementComponent(float speed){
 		this.speed = speed;
 	}
 }

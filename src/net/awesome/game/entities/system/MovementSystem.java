@@ -2,6 +2,7 @@ package net.awesome.game.entities.system;
 
 import net.awesome.game.Game;
 import net.awesome.game.Maths;
+import net.awesome.game.Vector2d;
 import net.awesome.game.entities.EntitySystem;
 import net.awesome.game.entities.components.AIComponent;
 import net.awesome.game.entities.components.CollisionComponent;
@@ -31,10 +32,12 @@ public class MovementSystem extends ComponentSystem {
 		int xa = 0, ya = 0;
 		if(rc != null) rc.tickCount++;
 		if(playc == null && aic != null){
-			if(aic.aiModule != null && Maths.distance(aic.x, aic.y, Game.playerX, Game.playerY) < aic.agroDistance){
-				aic.aiModule.findPath(aic.x, aic.y, Game.playerX, Game.playerY);
-				xa = aic.aiModule.getXA();
-				ya = aic.aiModule.getYA();
+			if(aic.aiModule != null && Maths.distance(aic.x / (8 * Game.SCALE), aic.y / (8 * Game.SCALE), Game.playerX / (8 * Game.SCALE), Game.playerY / (8 * Game.SCALE)) < aic.agroDistance){
+				if(aic.time % 60 == 0) aic.aiModule.findPath(aic.x, aic.y, Game.playerX, Game.playerY);
+				Vector2d dir = aic.aiModule.getDirection(aic.x, aic.y);
+				xa = dir.getX();
+				ya = dir.getY();
+				aic.time++;
 			}
 		} else if(aic == null && playc != null) {
 			if(playc.input != null){
