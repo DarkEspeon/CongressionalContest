@@ -48,7 +48,7 @@ public class Game extends Canvas implements Runnable {
 	public static EntitySystem es = new EntitySystem();
 	private static List<ComponentSystem> systems = new ArrayList<>();
 	private static RenderSystem renderSystem;
-	public static int playerX, playerY;
+	public static int playerX = 0, playerY = 0;
 	public static Game game;
 	
 	public static Level currentLevel;
@@ -324,7 +324,7 @@ public class Game extends Canvas implements Runnable {
 		renderSystem = new RenderSystem(es);
 		
 		player = es.addEntity("Player");
-		player.addComponent(new CollisionComponent(0, 7, 3, 7));
+		player.addComponent(new CollisionComponent(0, 7, 0, 7, -3, 8, -4, 7));
 		player.addComponent(new MovementComponent(1));
 		player.addComponent(new PlayerComponent(input));
 		player.addComponent(new RenderComponent(0, 28));
@@ -332,8 +332,8 @@ public class Game extends Canvas implements Runnable {
 		player.addComponent(new ColorComponent(0xFF3C3C3C, -3688873, 0xFF5A5A5A, -863813, 0xFF787878, -6325839, 0xFF969696, -16711681, 0xFFB4B4B4, -65536));
 		
 		Entity mob = es.addEntity("Mob1");
-		mob.addComponent(new CollisionComponent(0, 7, 3, 7));
-		mob.addComponent(new MovementComponent(.5f));
+		mob.addComponent(new CollisionComponent(0, 7, 3, 7, -3, 8, -4, 7));
+		mob.addComponent(new MovementComponent(1f));
 		mob.addComponent(new AIComponent(new AStarAI(), 50));
 		//mob.addComponent(new PlayerComponent(input));
 		mob.addComponent(new RenderComponent(0, 28));
@@ -362,13 +362,17 @@ public class Game extends Canvas implements Runnable {
 			delta += ((now - lastTime) / nsPerTick);
 			lastTime = now;
 			while(delta >= 1){
-				System.out.println("Delta = " + delta);
+				//System.out.println("X: " + playerX + " | Y: " + playerY);
+				tick((float)delta);
 				delta--;
 				ticks++;
-				tick();
+				//Timer.startTimer();
+				//Timer.stopTimer("Tick");
 			}
 			frames++;
+			//Timer.startTimer();
 			render();
+			//Timer.stopTimer("Render");
 			if(System.currentTimeMillis() - lastTimer > 1000){
 				lastTimer+= 1000;
 				frame.setTitle("FPS: " + frames + ", UPS: " + ticks);
@@ -377,9 +381,9 @@ public class Game extends Canvas implements Runnable {
 			}
 		}
 	}
-	public void tick(){
+	public void tick(float delta){
 		for(ComponentSystem cs : systems){
-			cs.process();
+			cs.process(delta);
 		}
 		tickCount++;
 		if(gs == GameState.Playing){
@@ -434,7 +438,7 @@ public class Game extends Canvas implements Runnable {
 		int xOffset = pc.x - (screen.width / 2);
 		int yOffset = pc.y - (screen.height / 2);
 		level.renderTiles(screen, xOffset, yOffset);
-		renderSystem.process();
+		renderSystem.process(0f);
 		//level.renderEntities(screen);
 		//player.render(screen);
 		for(int y = 0; y < screen.height; y++){

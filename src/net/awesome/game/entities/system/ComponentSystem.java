@@ -20,6 +20,7 @@ public abstract class ComponentSystem {
 	protected IMap<Class<? extends Component>, Component> requiredComponentRef = new ArrayMap<>();
 	protected IMap<Class<? extends Component>, Component> optionalComponentRef = new ArrayMap<>();
 	private EntitySystem es;
+	Entity e = null;
 	private Iterator<Entity> EntityIter = null;
 	public ComponentSystem(EntitySystem es){
 		this.es = es;
@@ -34,9 +35,21 @@ public abstract class ComponentSystem {
 	public <T extends Component> T getRequired(Class<T> clss){ return (T)requiredComponentRef.get(clss); }
 	public <T extends Component> T getOptional(Class<T> clss){ return (T)optionalComponentRef.get(clss); }
 	
+	public List<Entity> getEntitiesWith(Class<? extends Component>... clss){
+		List<Entity> resList = new ArrayList<>();
+		EntityLoop: for(Entity e : es.getEntities().values()){
+			if(e.isProcessing()) continue;
+			for(Class<? extends Component> cl : clss){
+				if(!e.hasComponent(cl)) continue EntityLoop;
+			}
+			resList.add(e);
+		}
+		return resList;
+	}
+	
 	private boolean NextEntity(){
 		if(EntityIter == null) EntityIter = iterator();
-		Entity e = EntityIter.next();
+		e = EntityIter.next();
 		if (!EntityIter.hasNext() && e == null){ EntityIter = null; return false; }
 		for(Class<? extends Component> reqC : requiredComponents){
 			requiredComponentRef.add(reqC, e.getComponent(reqC));
@@ -45,24 +58,26 @@ public abstract class ComponentSystem {
 			if(e.hasComponent(optC)) optionalComponentRef.add(optC, e.getComponent(optC));
 			else optionalComponentRef.add(optC, null);
 		}
+		e.setProcessing(true);
 		return true;
 	}
 	
-	public void process(){
+	public void process(float delta){
 		if(requiredComponents.size() == 0) throw new RuntimeException("System " + getClass().getSimpleName() + " class was called to process, but doesn't have any required components!");
 		else {
 			long time = 0;
 			if(timeSystems)
 				time = System.currentTimeMillis();
 			while(NextEntity()){
-				onProcess();
+				onProcess(delta);
+				if(e != null) e.setProcessing(false);
 			}
 			if(timeSystems){
 				System.out.println(getClass().getSimpleName() + ": Took " + (System.currentTimeMillis() - time) + " ms");
 			}
 		}
 	}
-	public abstract void onProcess();
+	public abstract void onProcess(float delta);
 	
 	protected class EntityIterator implements Iterator<Entity>{
 		private List<Entity> matches = new ArrayList<Entity>();

@@ -6,7 +6,7 @@ public class AIComponent implements Component{
 	public AI aiModule;
 	public int x, y;
 	public int agroDistance = 10;
-	public int time = 0;
+	public float time = 0;
 	public AIComponent(AI aiModule){
 		this.aiModule = aiModule;
 	}

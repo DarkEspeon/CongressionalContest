@@ -40,20 +40,23 @@ public class AStarAI implements AI {
 			if(path.size() > 0){
 				int xa = path.get(path.size() - 1).x;
 				int ya = path.get(path.size() - 1).y;
-				if(curx < xa * (8 * Game.SCALE)) dxa--;
-				if(curx > xa * (8 * Game.SCALE)) dxa++;
-				if(cury < ya * (8 * Game.SCALE)) dya--;
-				if(cury > ya * (8 * Game.SCALE)) dya++;
+				if(curx < xa << 3) dxa++;
+				if(curx > xa << 3) dxa--;
+				if(cury < ya << 3) dya++;
+				if(cury > ya << 3) dya--;
 			}
 		}
+		//System.out.println("Move: {X: " + dxa + ", Y: " + dya + "}");
 		return new Vector2d(dxa, dya);
 	}
 	public void findPath(int x, int y, int goalx, int goaly) {
-		System.out.println("AStar Start");
-		x /= (8 * Game.SCALE);
-		y /= (8 * Game.SCALE);
-		goalx /= (8 * Game.SCALE);
-		goaly /= (8 * Game.SCALE);
+		//System.out.println("AStar Start");
+		path.clear();
+		//System.out.println("Start{X: " + x + ", Y: " + y + "} End{X: " + goalx + ", Y: " + goaly + "}");
+		x = x >> 3;
+		y = y >> 3;
+		goalx = goalx >> 3;
+		goaly = goaly >> 3;
 		List<Node> open = new ArrayList<>();
 		List<Node> closed = new ArrayList<>();
 		Node current = new Node(x, y, null, 0, Maths.distance(x, y, goalx, goaly));
@@ -62,6 +65,7 @@ public class AStarAI implements AI {
 			Collections.sort(open, nodeSorter);
 			current = open.get(0);
 			if(current.x == goalx && current.y == goaly){
+				//System.out.println("Path found");
 				while(current.parent != null){
 					path.add(current);
 					current = current.parent;
@@ -89,7 +93,7 @@ public class AStarAI implements AI {
 			}
 		}
 		closed.clear();
-		System.out.println("AStar Finish");
+		//System.out.println("AStar Finish");
 	}
 	private boolean posInList(List<Node> nodes, int x, int y){
 		for(Node n : nodes){

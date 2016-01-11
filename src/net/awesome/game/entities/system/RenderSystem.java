@@ -16,7 +16,7 @@ public class RenderSystem extends ComponentSystem {
 		addRequired(MovementComponent.class);
 		addOptional(ColorComponent.class);
 	}
-	public void onProcess() {
+	public void onProcess(float delta) {
 		RenderComponent rc = getRequired(RenderComponent.class);
 		PositionComponent pc = getRequired(PositionComponent.class);
 		MovementComponent mc = getRequired(MovementComponent.class);
