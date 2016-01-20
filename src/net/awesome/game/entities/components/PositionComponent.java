@@ -14,8 +14,8 @@ public class PositionComponent implements Component{
 		this(x, y, null);
 	}
 	public PositionComponent(int x, int y, Level level){
-		this.x = x * (8 * Game.SCALE);
-		this.y = y * (8 * Game.SCALE);
+		this.x = x * 8;
+		this.y = y * 8;
 		this.level = level;
 	}
 }

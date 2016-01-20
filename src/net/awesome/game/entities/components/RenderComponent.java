@@ -6,7 +6,7 @@ public class RenderComponent implements Component {
 	public int scale = 1;
 	public int walkingSpeed = 3;
 	public int xTile = 0, yTile = 0;
-	public int tickCount = 0;
+	public float tickCount = 0;
 	public RenderComponent(int movingDir, int scale, int xTile, int yTile){
 		this.movingDir = movingDir;
 		this.scale = scale;

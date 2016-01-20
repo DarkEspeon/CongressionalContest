@@ -19,7 +19,7 @@ public abstract class ComponentSystem {
 	private List<Class<? extends Component>> bannedComponents = new ArrayList<>();
 	protected IMap<Class<? extends Component>, Component> requiredComponentRef = new ArrayMap<>();
 	protected IMap<Class<? extends Component>, Component> optionalComponentRef = new ArrayMap<>();
-	private EntitySystem es;
+	protected EntitySystem es;
 	Entity e = null;
 	private Iterator<Entity> EntityIter = null;
 	public ComponentSystem(EntitySystem es){

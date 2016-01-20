@@ -12,6 +12,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import javax.imageio.ImageIO;
 import javax.swing.Icon;
@@ -29,8 +30,10 @@ import net.awesome.game.entities.components.PlayerComponent;
 import net.awesome.game.entities.components.PositionComponent;
 import net.awesome.game.entities.components.RenderComponent;
 import net.awesome.game.entities.system.ComponentSystem;
+import net.awesome.game.entities.system.CrystalSystem;
 import net.awesome.game.entities.system.MovementSystem;
 import net.awesome.game.entities.system.RenderSystem;
+import net.awesome.game.gfx.Font;
 import net.awesome.game.gfx.Screen;
 import net.awesome.game.gfx.SpriteSheet;
 import net.awesome.game.gui.ImageButton;
@@ -50,6 +53,7 @@ public class Game extends Canvas implements Runnable {
 	private static RenderSystem renderSystem;
 	public static int playerX = 0, playerY = 0;
 	public static Game game;
+	private int numMobs = 0;
 	
 	public static Level currentLevel;
 	
@@ -66,6 +70,7 @@ public class Game extends Canvas implements Runnable {
 //	public JComboBox<String> ColorOptions;
 //	public boolean cboxsliders = false;
 	
+	public static int points = 0;
 	public boolean running = false;
 	public int tickCount = 0;
 	
@@ -275,45 +280,6 @@ public class Game extends Canvas implements Runnable {
 		returnim.getGraphics().drawImage(newim, 0, 0, returnim.getWidth(), returnim.getHeight(), null);
 		return returnim;
 	}
-//	protected void handleColorAccept() {
-//		int red = r.getValue();
-//		int green = g.getValue();
-//		int blue = b.getValue();
-//		if(red == 255 && green == 0 && blue == 255){
-//			blue--;
-//		}
-//		player.setEyeColor(fakePlayer.getEyeColor());
-//		player.setHairColor(fakePlayer.getHairColor());
-//		player.setShirtColor(fakePlayer.getShirtColor());
-//		player.setSkinColor(fakePlayer.getSkinColor());
-//		player.setPantsColor(fakePlayer.getPantsColor());
-//	}
-//	protected void HandleColorSliders() {
-//		int red = r.getValue();
-//		int green = g.getValue();
-//		int blue = b.getValue();
-//		String choice = (String)ColorOptions.getSelectedItem();
-//		if(red == 255 && green == 0 && blue == 255){
-//			blue--;
-//		}
-//		switch(choice){
-//		case "EyeColor":
-//			fakePlayer.setEyeColor(new Color(red, green, blue));
-//			break;
-//		case "HairColor":
-//			fakePlayer.setHairColor(new Color(red, green, blue));
-//			break;
-//		case "ShirtColor":
-//			fakePlayer.setShirtColor(new Color(red, green, blue));
-//			break;
-//		case "PantsColor":
-//			fakePlayer.setPantsColor(new Color(red, green, blue));
-//			break;
-//		case "SkinColor":
-//			fakePlayer.setSkinColor(new Color(red, green, blue));
-//			break;
-//		}
-//	}
 	public void init(){
 		screen = new Screen(WIDTH, HEIGHT, spriteSheet);
 		input = new InputHandler(this);
@@ -321,24 +287,37 @@ public class Game extends Canvas implements Runnable {
 		level = new Level("/level/WaterTest.png");
 		currentLevel = level;
 		systems.add(new MovementSystem(es));
+		systems.add(new CrystalSystem(es));
 		renderSystem = new RenderSystem(es);
 		
-		player = es.addEntity("Player");
-		player.addComponent(new CollisionComponent(0, 7, 0, 7, -3, 8, -4, 7));
+		player = es.addEntity("ZPlayer");
+		player.addComponent(new CollisionComponent(0, 7, 0, 7, 0, 8, -4, 12));
 		player.addComponent(new MovementComponent(1));
 		player.addComponent(new PlayerComponent(input));
 		player.addComponent(new RenderComponent(0, 28));
-		player.addComponent(new PositionComponent());
+		List<Vector2d> spawnLocations = GameHelpers.getSpawnLocations(currentLevel);
+		Vector2d pos = spawnLocations.get(new Random().nextInt(spawnLocations.size()));
+		player.addComponent(new PositionComponent(pos.getX(), pos.getY()));
 		player.addComponent(new ColorComponent(0xFF3C3C3C, -3688873, 0xFF5A5A5A, -863813, 0xFF787878, -6325839, 0xFF969696, -16711681, 0xFFB4B4B4, -65536));
 		
-		Entity mob = es.addEntity("Mob1");
-		mob.addComponent(new CollisionComponent(0, 7, 3, 7, -3, 8, -4, 7));
+		//spawnMob(5, 5);
+		//spawnMob(5, 10);
+		//spawnMob(10, 5);
+		GameHelpers.spawnBlueCrystal(es);
+		GameHelpers.spawnRedCrystal(es);
+		GameHelpers.spawnGreenCrystal(es);
+		GameHelpers.spawnGoldCrystal(es);
+		GameHelpers.spawnCyanCrystal(es);
+	}
+	public void spawnMob(int posx, int posy){
+		Entity mob = es.addEntity("Mob" + numMobs);
+		mob.addComponent(new CollisionComponent(0, 7, 3, 7, 0, 8, -4, 12));
 		mob.addComponent(new MovementComponent(1f));
-		mob.addComponent(new AIComponent(new AStarAI(), 50));
-		//mob.addComponent(new PlayerComponent(input));
+		mob.addComponent(new AIComponent(new AStarAI(), 50, 3));
 		mob.addComponent(new RenderComponent(0, 28));
-		mob.addComponent(new PositionComponent(5, 5));
+		mob.addComponent(new PositionComponent(posx, posy));
 		mob.addComponent(new ColorComponent(0xFF3C3C3C, -3688873, 0xFF5A5A5A, -863813, 0xFF787878, -6325839, 0xFF969696, -16711681, 0xFFB4B4B4, -65536));
+		numMobs++;
 	}
 	public synchronized void start() {
 		running = true;
@@ -358,6 +337,7 @@ public class Game extends Canvas implements Runnable {
 		long lastTimer = System.currentTimeMillis();
 		double delta = 0;
 		while(running){
+			//points = 5;
 			long now = System.nanoTime();
 			delta += ((now - lastTime) / nsPerTick);
 			lastTime = now;
@@ -375,7 +355,7 @@ public class Game extends Canvas implements Runnable {
 			//Timer.stopTimer("Render");
 			if(System.currentTimeMillis() - lastTimer > 1000){
 				lastTimer+= 1000;
-				frame.setTitle("FPS: " + frames + ", UPS: " + ticks);
+				frame.setTitle("FPS: " + frames + ", UPS: " + ticks + ", Points: " + points);
 				ticks = 0;
 				frames = 0;
 			}
@@ -441,6 +421,11 @@ public class Game extends Canvas implements Runnable {
 		renderSystem.process(0f);
 		//level.renderEntities(screen);
 		//player.render(screen);
+		if(points >= 5){
+			//g.setColor(new Color(0, 0, 0));
+			Font.render("You Win!", screen, xOffset + screen.width / 2 - 25, yOffset + screen.height / 2, 1);
+			//g.drawString("You Win!", getWidth() / 2 - 10, getHeight() / 2);
+		}
 		for(int y = 0; y < screen.height; y++){
 			for(int x = 0; x < screen.width; x++){
 				pixels[x + y * WIDTH] = screen.pixels[x + y * screen.width];
@@ -457,11 +442,6 @@ public class Game extends Canvas implements Runnable {
 			g.setColor(new Color(0, 0, 0, 100));
 			g.fillRect(0, 0, getWidth(), getHeight());
 		}
-//		if(gs == GameState.ColorOptions){
-//			g.setColor(new Color(0, 0, 0, 100));
-//			g.fillRect(0, 0, getWidth(), getHeight());
-//			fakePlayer.render(g, WIDTH * SCALE - 75, 11);
-//		}
 		g.dispose();
 		bs.show();
 	}

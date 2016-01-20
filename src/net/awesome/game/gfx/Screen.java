@@ -1,5 +1,6 @@
 package net.awesome.game.gfx;
 
+import java.awt.Rectangle;
 import java.util.Map;
 
 public class Screen {
@@ -24,6 +25,17 @@ public class Screen {
 		this.height = height;
 		this.sheet = sheet;
 		pixels = new int[width * height];
+	}
+	public void render(Rectangle r){
+		r.x -= xOffset;
+		r.y -= yOffset;
+		for(int y = r.y; y < r.y + r.height; y++){
+			if(y < 0 || y >= height) continue;
+			for(int x = r.x; x < r.x + r.width; x++){
+				if(x < 0 || x >= width) continue;
+				pixels[x + y * width] = 0xFFFF00FF;
+			}
+		}
 	}
 	public void render(int xPos, int yPos, int tile, int mirrorDir, int scale){
 		xPos -= xOffset;

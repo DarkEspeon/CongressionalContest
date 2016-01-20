@@ -7,8 +7,11 @@ import net.awesome.game.entities.components.Component;
 
 public class Entity {
 	private boolean processing = false;
+	private String name;
 	private Map<Class<? extends Component>, Component> components = new HashMap<>();
-	public Entity(){}
+	public Entity(String name){
+		this.name = name;
+	}
 	
 	public boolean isProcessing(){ return processing; }
 	public void setProcessing(boolean processing){ this.processing = processing; }
@@ -16,4 +19,5 @@ public class Entity {
 	public <T extends Component> T getComponent(Class<T> clzz){ return (T)components.get(clzz); }
 	public void addComponent(Component comp){ components.put(comp.getClass(), comp); }
 	public void removeComponent(Class<? extends Component> comp){ components.remove(comp); }
+	public String getName(){ return name; }
 }

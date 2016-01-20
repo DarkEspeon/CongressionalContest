@@ -1,5 +1,6 @@
 package net.awesome.game.entities.system;
 
+import java.awt.Rectangle;
 import java.util.List;
 
 import net.awesome.game.Game;
@@ -9,6 +10,7 @@ import net.awesome.game.entities.Entity;
 import net.awesome.game.entities.EntitySystem;
 import net.awesome.game.entities.components.AIComponent;
 import net.awesome.game.entities.components.CollisionComponent;
+import net.awesome.game.entities.components.CrystalComponent;
 import net.awesome.game.entities.components.MovementComponent;
 import net.awesome.game.entities.components.PlayerComponent;
 import net.awesome.game.entities.components.PositionComponent;
@@ -16,6 +18,10 @@ import net.awesome.game.entities.components.RenderComponent;
 import net.awesome.game.level.tiles.Tile;
 
 public class MovementSystem extends ComponentSystem {
+	public static enum CollisionResponse{
+		SLIDING, POINTS, NOCOLLISION;
+	}
+	private static Entity collidedWith = null;
 	public MovementSystem(EntitySystem es) {
 		super(es);
 		addRequired(MovementComponent.class);
@@ -35,7 +41,8 @@ public class MovementSystem extends ComponentSystem {
 		int xa = 0, ya = 0;
 		if(rc != null) rc.tickCount++;
 		if(playc == null && aic != null){
-			if(aic.aiModule != null && Maths.distance(posc.x >> 3, posc.y >> 3, Game.playerX >> 3, Game.playerY >> 3) < aic.agroDistance){
+			float dist = Maths.distance(posc.x >> 3, posc.y >> 3, Game.playerX >> 3, Game.playerY >> 3);
+			if(aic.aiModule != null && dist < aic.agroDistance && dist >= aic.minDistance){
 				aic.aiModule.findPath(posc.x, posc.y, Game.playerX, Game.playerY);
 				Vector2d dir = aic.aiModule.getDirection(posc.x, posc.y);
 				xa = dir.getX();
@@ -79,59 +86,54 @@ public class MovementSystem extends ComponentSystem {
 		if(ya > 0) rc.movingDir = 1;
 		if(xa < 0) rc.movingDir = 2;
 		if(xa > 0) rc.movingDir = 3;
-		if(!hasCollided(xa, ya)){
+		CollisionResponse cr = hasCollided(xa, ya);
+		if(cr.equals(CollisionResponse.NOCOLLISION)){
 			posc.x += xa * mc.speed;
 			posc.y += ya * mc.speed;
 			if(aic != null){
 				aic.x += xa * mc.speed;
 				aic.y += ya * mc.speed;
 			}
-		} else {
-			//System.out.println("Collided");
+		} else if(cr.equals(CollisionResponse.POINTS) && collidedWith != null){
+			Game.points++;
+			es.removeEntity(collidedWith.getName());
 		}
 	}
-	private boolean hasCollided(int xa, int ya){
+	private CollisionResponse hasCollided(int xa, int ya){
+		collidedWith = null;
 		CollisionComponent cc = getRequired(CollisionComponent.class);
 		PositionComponent posc = getRequired(PositionComponent.class);
 		List<Entity> entities = getEntitiesWith(CollisionComponent.class, PositionComponent.class);
-		if(cc == null) return false;
+		if(cc == null) return CollisionResponse.NOCOLLISION;
 		for(int x = cc.xMin; x < cc.xMax; x++){
-			if(isSolidTile(xa, ya, x, cc.yMin)) return true;
-			if(isSolidTile(xa, ya, x, cc.yMax)) return true;
+			if(isSolidTile(xa, ya, x, cc.yMin)) return CollisionResponse.SLIDING;
+			if(isSolidTile(xa, ya, x, cc.yMax)) return CollisionResponse.SLIDING;
 		}
 		for(int y = cc.yMin; y < cc.yMax; y++){
-			if(isSolidTile(xa, ya, cc.xMin, y)) return true;
-			if(isSolidTile(xa, ya, cc.xMax, y)) return true;
+			if(isSolidTile(xa, ya, cc.xMin, y)) return CollisionResponse.SLIDING;
+			if(isSolidTile(xa, ya, cc.xMax, y)) return CollisionResponse.SLIDING;
 		}
-		int xMinLine = posc.x + xa + cc.xEMin;
-		int xMaxLine = posc.x + xa + cc.xEMax;
-		int yMinLine = posc.y + ya + cc.yEMin;
-		int yMaxLine = posc.y + ya + cc.yEMax;
+		Rectangle r = new Rectangle();
+		r.x = posc.x + xa + cc.xEMin;
+		r.width = cc.xEMax;
+		r.y = posc.y + ya + cc.yEMin;
+		r.height = cc.yEMax;
 		for(Entity e : entities){
 			CollisionComponent otherCC = e.getComponent(CollisionComponent.class);
 			PositionComponent otherPosC = e.getComponent(PositionComponent.class);
-			int oXMinLine = otherPosC.x + otherCC.xEMin;
-			int oXMaxLine = otherPosC.x + otherCC.xEMax;
-			int oYMinLine = otherPosC.y + otherCC.yEMin;
-			int oYMaxLine = otherPosC.y + otherCC.yEMax;
-			if(xMinLine <= oXMaxLine && xMinLine >= oXMinLine && yMinLine <= oYMaxLine && yMinLine >= oYMinLine){
-				System.out.println("xMin + yMin");
-				return true;
-			}
-			if(xMinLine <= oXMaxLine && xMinLine >= oXMinLine && yMaxLine >= oYMinLine && yMaxLine <= oYMaxLine){
-				System.out.println("xMin + yMax");
-				return true;
-			}
-			if(xMaxLine >= oXMinLine && xMaxLine <= oXMaxLine && yMinLine <= oYMaxLine && yMinLine >= oYMinLine){
-				System.out.println("xMax + yMin");
-				return true;
-			}
-			if(xMaxLine >= oXMinLine && xMaxLine <= oXMaxLine && yMaxLine >= oYMinLine && yMaxLine <= oYMaxLine){
-				System.out.println("xMax + yMax");
-				return true;
+			Rectangle or = new Rectangle();
+			or.x = otherPosC.x + otherCC.xEMin;
+			or.width = otherCC.xEMax;
+			or.y = otherPosC.y + otherCC.yEMin;
+			or.height = otherCC.yEMax;
+			if(r.intersects(or)){
+				if(e.hasComponent(CrystalComponent.class)){
+					collidedWith = e;
+					return CollisionResponse.POINTS;
+				} else return CollisionResponse.SLIDING;
 			}
 		}
-		return false;
+		return CollisionResponse.NOCOLLISION;
 	}
 	private boolean isSolidTile(int xa, int ya, int x, int y){
 		PositionComponent posc = getRequired(PositionComponent.class);
